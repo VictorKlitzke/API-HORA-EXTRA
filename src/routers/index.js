@@ -7,6 +7,7 @@ const router = express.Router();
 // POST
 router.post('/postLogin', postAuth.postLogin);
 router.post('/postLogout', postAuth.postLogout);
+router.post('/postHours', postAuth.postHours);
 
 
 // GET

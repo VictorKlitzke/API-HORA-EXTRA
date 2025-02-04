@@ -21,7 +21,7 @@ module.exports = async (req, res, next) => {
 
         const result = await pool.request()
             .input('numcad', userId)
-            .query('SELECT * FROM r034fun WHERE numcad = @numcad');
+            .query('SELECT * FROM Test.Senior.r034fun WHERE numcad = @numcad');
 
         if (!result.recordset[0]) {
             return res
