@@ -1,13 +1,14 @@
 const connectDB = require('../services/index');
+const convertTimeToMinutes = require('../utils/index');
+
 const jwt = require("jsonwebtoken");
 const moment = require('moment');
-const convertTimeToMinutes = require('../utils/index');
+const nodemailer = require('nodemailer');
+
 require('dotenv').config();
 
 exports.postLogin = async (req, res) => {
-    const { matricula }  = req.body;
-
-    console.log(matricula);
+    const { matricula } = req.body;
     const pool = await connectDB();
 
     if (!matricula) {
@@ -19,11 +20,11 @@ exports.postLogin = async (req, res) => {
         const result = await pool.request()
             .input('matricula', matricula)
             .query('SELECT * FROM Test.Senior.r034fun WHERE numcad = @matricula');
-            
+
         if (!result.recordset[0]) {
             return res.status(401).json({ message: 'Usuário ou senha inválidos.' });
         }
-        
+
         const user = result.recordset[0];
 
         const token = jwt.sign({ id: user.numcad, postra: user.postra }, process.env.TOKEN, { expiresIn: "3h" });
@@ -64,6 +65,7 @@ exports.postLogout = async (req, res) => {
 exports.postHours = async (req, res) => {
     const { data } = req.body;
     const { numcad, tipcol, numemp, motivo, selectedHours } = data;
+    const { codrat = 0, motsit, codusu } = 0;
 
     if (!numcad || !tipcol || !numemp || !selectedHours || selectedHours.length === 0) {
         return res.status(400).json({ message: 'Informações insuficientes para processamento.' });
@@ -75,7 +77,11 @@ exports.postHours = async (req, res) => {
         const formattedHours = selectedHours.map(hour => {
             const dataExtra = moment(hour.DATA_EXTRA, 'YYYY-MM-DD').format('YYYY-MM-DD HH:mm:ss.SSS');
             const qtdhor = convertTimeToMinutes(hour.HORA_EXTRA);
-            return { dataExtra, qtdhor };
+
+            const isSaturday = moment(hour.DATA_EXTRA).day() === 6;
+            const codsit = isSaturday ? 305 : 301;
+
+            return { dataExtra, qtdhor, codsit };
         });
 
         console.log('Horas processadas:', formattedHours);
@@ -87,9 +93,13 @@ exports.postHours = async (req, res) => {
                 .input('numemp', numemp)
                 .input('data_extra', hour.dataExtra)
                 .input('qtdhor', hour.qtdhor)
+                .input('codrat', codrat)
+                .input('motsit', motsit)
+                .input('codusu', codusu)
+                .input('codsit', hour.codsit)
                 .query(`
-                    INSERT INTO sua_tabela (numcad, tipcol, numemp, data_extra, qtdhor) 
-                    VALUES (@numcad, @tipcol, @numemp, @data_extra, @qtdhor)
+                    INSERT INTO R066SIT (numcad, tipcol, numemp, data_extra, qtdhor, codrat, motsit, codusu, codsit) 
+                    VALUES (@numcad, @tipcol, @numemp, @data_extra, @qtdhor, @codrat, @motsit, @codusu, @codsit)
                 `);
         }
 
@@ -99,3 +109,35 @@ exports.postHours = async (req, res) => {
         return res.status(500).json({ message: 'Erro no servidor ao registrar horas extras.' });
     }
 };
+
+
+exports.postSendEmail = async (req, res) => {
+    const { nomfun, titred, numcad, tipcol, numemp, motivo, selectedHours } = req.body;
+
+    const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASSWORD
+        }
+    })
+
+    const mailOptions = {
+        from: 'seu-email@gmail.com',  
+        to: 'email-rh@dominio.com', 
+        subject: 'Reprovação de Horas Extras', 
+        text: `As horas extras do colaborador ${JSON.stringify(nomfun)} foram reprovadas.
+            Motivo: ${motivo}
+            Horas reprovadas: ${JSON.stringify(selectedHours)} 
+            Cargos: ${JSON.stringify(titred)}`};
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log('E-mail enviado com sucesso: ', info.response);
+
+    } catch (error) {
+        console.error('Erro ao enviar email:', error);
+        return res.status(500).json({ message: 'Erro no servidor ao enviar email.' });
+    }
+}

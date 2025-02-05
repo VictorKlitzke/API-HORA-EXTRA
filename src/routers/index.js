@@ -6,9 +6,9 @@ const router = express.Router();
 
 // POST
 router.post('/postLogin', postAuth.postLogin);
-router.post('/postLogout', postAuth.postLogout);
-router.post('/postHours', postAuth.postHours);
-
+router.post('/postLogout', auth, postAuth.postLogout);
+router.post('/postHours', auth, postAuth.postHours);
+router.post('/postSendEmail', auth, postAuth.postSendEmail);
 
 // GET
 router.get('/getLogin', auth, getAuth.getLogin);
