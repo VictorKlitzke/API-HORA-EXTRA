@@ -12,7 +12,7 @@ exports.getLogin = async (req, res) => {
         const pool = await connectDB();
         const result = await pool.request()
             .input('numcad', userId)
-            .query('select fun.numcad, fun.nomfun, car.titred FROM Test.Senior.r034fun fun inner join Test.Senior.r024car car on car.codcar = fun.codcar where numcad = @numcad');
+            .query('select fun.numcad, fun.nomfun, car.titred, car.usu_tbcarges FROM Test.Senior.r034fun fun inner join Test.Senior.r024car car on car.codcar = fun.codcar where numcad = @numcad');
 
         if (!result.recordset.length) {
             return res.status(404).json({ message: 'Matrícula não encontrada.' });
@@ -30,6 +30,7 @@ exports.getLogin = async (req, res) => {
 
 exports.getColaboradorGestor = async (req, res) => {
     const userId = req.user.numcad;
+    const numloc = req.user.numloc;
 
     if (!userId) {
         return res.status(401).json({ message: 'Acesso não autorizado.' });
@@ -39,6 +40,7 @@ exports.getColaboradorGestor = async (req, res) => {
         const pool = await connectDB();
         const { recordset: ListHora } = await pool.request()
             .input('numcad', sql.Int, userId)
+            .input('numloc', sql.Int, numloc)
             .query(`
                  SELECT 
                     GES.POSTRA AS GESTOR,
@@ -53,14 +55,15 @@ exports.getColaboradorGestor = async (req, res) => {
                 FROM
                     TEST.SENIOR.R034FUN GES
                 JOIN TEST.SENIOR.R034FUN COL 
-                    ON GES.POSTRA = COL.POSTRA
+                    ON GES.NUMLOC = COL.NUMLOC -- Alterei aqui
                     AND COL.SITAFA = 1
                 JOIN TEST.SENIOR.R024CAR CAR
                     ON CAR.CODCAR = COL.CODCAR
                 JOIN TEST.SENIOR.R016ORN ORN 
                     ON ORN.NUMLOC = COL.NUMLOC
                 WHERE
-                    GES.NUMCAD =  @numcad
+                    GES.NUMCAD = @numcad
+                    AND COL.NUMLOC = @numloc
             `);
 
         const uniqueResults = [];

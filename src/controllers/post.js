@@ -20,14 +20,14 @@ exports.postLogin = async (req, res) => {
 
         const result = await pool.request()
             .input('matricula', matricula)
-            .query('SELECT * FROM Test.Senior.r034fun WHERE numcad = @matricula');
+            .query(`SELECT * FROM TEST.SENIOR.R034FUN FU JOIN TEST.SENIOR.R024CAR RC ON RC.CODCAR = FU.CODCAR WHERE FU.NUMCAD = @MATRICULA`);
+
+        const user = result.recordset[0];
 
         if (!result.recordset[0]) {
             return res.status(401).json({ message: 'Usuário ou senha inválidos.' });
         }
-
-        const user = result.recordset[0];
-
+        
         const token = jwt.sign({ id: user.numcad, postra: user.postra }, process.env.TOKEN, { expiresIn: "3h" });
         res.cookie('token', token, {
             httpOnly: true,
@@ -41,7 +41,7 @@ exports.postLogin = async (req, res) => {
             token: token,
             message: "Login realizado com sucesso",
             UserId: user.numcad,
-            postra: user.postra
+            numloc: user.numloc
         });
 
     } catch (error) {
