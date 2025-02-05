@@ -47,7 +47,9 @@ exports.getColaboradorGestor = async (req, res) => {
                     COL.TIPCOL,
                     COL.NOMFUN,
                     CAR.TITRED,
-                    CAR.USU_TBCARGES
+                    CAR.USU_TBCARGES,
+                    ORN.NUMLOC,
+                    ORN.NOMLOC
                 FROM
                     TEST.SENIOR.R034FUN GES
                 JOIN TEST.SENIOR.R034FUN COL 
@@ -55,6 +57,8 @@ exports.getColaboradorGestor = async (req, res) => {
                     AND COL.SITAFA = 1
                 JOIN TEST.SENIOR.R024CAR CAR
                     ON CAR.CODCAR = COL.CODCAR
+                JOIN TEST.SENIOR.R016ORN ORN 
+                    ON ORN.NUMLOC = COL.NUMLOC
                 WHERE
                     GES.NUMCAD =  @numcad
             `);
