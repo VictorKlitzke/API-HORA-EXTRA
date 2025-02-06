@@ -38,11 +38,12 @@ exports.getColaboradorGestor = async (req, res) => {
 
     try {
         const pool = await connectDB();
+
         const { recordset: ListHora } = await pool.request()
             .input('numcad', sql.Int, userId)
             .input('numloc', sql.Int, numloc)
             .query(`
-                 SELECT 
+                SELECT 
                     GES.POSTRA AS GESTOR,
                     COL.NUMCAD,
                     COL.NUMEMP,
@@ -55,7 +56,7 @@ exports.getColaboradorGestor = async (req, res) => {
                 FROM
                     TEST.SENIOR.R034FUN GES
                 JOIN TEST.SENIOR.R034FUN COL 
-                    ON GES.NUMLOC = COL.NUMLOC -- Alterei aqui
+                    ON GES.NUMLOC = COL.NUMLOC
                     AND COL.SITAFA = 1
                 JOIN TEST.SENIOR.R024CAR CAR
                     ON CAR.CODCAR = COL.CODCAR
@@ -63,18 +64,12 @@ exports.getColaboradorGestor = async (req, res) => {
                     ON ORN.NUMLOC = COL.NUMLOC
                 WHERE
                     GES.NUMCAD = @numcad
-                    AND COL.NUMLOC = @numloc
+                    
             `);
 
-        const uniqueResults = [];
-        const seenNumCad = new Set();
-
-        ListHora.forEach((item) => {
-            if (!seenNumCad.has(item.NUMCAD)) {
-                uniqueResults.push(item);
-                seenNumCad.add(item.NUMCAD);
-            }
-        });
+        const uniqueResults = ListHora.filter((item, index, self) => 
+            index === self.findIndex((t) => t.NUMCAD === item.NUMCAD)
+        );
 
         if (uniqueResults.length === 0) {
             return res.status(404).json({ message: 'Nenhum colaborador encontrado para este gestor.' });
@@ -83,7 +78,6 @@ exports.getColaboradorGestor = async (req, res) => {
         const numcadList = uniqueResults.map(item => item.NUMCAD);
         const jornadaList = await getJornadas(numcadList);
         const HoursList = await getHours(numcadList);
-
         const response = await Promise.all(uniqueResults.map(async (item) => {
             item.ListJornada = jornadaList.filter(J => J.NUMCAD === item.NUMCAD);
             item.ListHorasExtras = HoursList.filter(H => H.NUMCAD === item.NUMCAD);
