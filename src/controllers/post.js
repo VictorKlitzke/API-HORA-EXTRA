@@ -109,20 +109,19 @@ exports.postHours = async (req, res) => {
             return res.status(400).json({ message: 'Nenhuma hora extra válida foi encontrada.' });
         }
 
-        if (status === 'aprovado') {
-            for (let hour of formattedHours) {
-                try {
-                    await pool.request()
-                        .input('numcad', sql.Int, numcad)
-                        .input('tipcol', sql.Int, tipcol)
-                        .input('numemp', sql.Int, numemp)
-                        .input('datapu', sql.DateTime, hour.datapu)
-                        .input('qtdhor', sql.Int, hour.qtdhor)
-                        .input('codrat', sql.Int, codrat)
-                        .input('motsit', sql.Int, motsit)
-                        .input('codusu', sql.Int, codusu)
-                        .input('codsit', sql.Int, hour.codsit)
-                        .query(`
+        for (let hour of formattedHours) {
+            try {
+                await pool.request()
+                    .input('numcad', sql.Int, numcad)
+                    .input('tipcol', sql.Int, tipcol)
+                    .input('numemp', sql.Int, numemp)
+                    .input('datapu', sql.DateTime, hour.datapu)
+                    .input('qtdhor', sql.Int, hour.qtdhor)
+                    .input('codrat', sql.Int, codrat)
+                    .input('motsit', sql.Int, motsit)
+                    .input('codusu', sql.Int, codusu)
+                    .input('codsit', sql.Int, hour.codsit)
+                    .query(`
                             BEGIN TRY
                                 INSERT INTO Test.Senior.R066SIT (numcad, tipcol, numemp, datapu, qtdhor, codrat, motsit, codusu, codsit)
                                 VALUES (@numcad, @tipcol, @numemp, @datapu, @qtdhor, @codrat, @motsit, @codusu, @codsit)
@@ -132,39 +131,11 @@ exports.postHours = async (req, res) => {
                                 PRINT 'Erro de inserção ignorado: ' + ERROR_MESSAGE();
                             END CATCH
                         `);
-                } catch (error) {
-                    console.error('Erro ao tentar inserir dados:', error);
-                }
+            } catch (error) {
+                console.error('Erro ao tentar inserir dados:', error);
             }
-        } else {
-            for (let hour of formattedHours) {
-                try {
-                    await pool.request()
-                        .input('numcad', sql.Int, numcad)
-                        .input('tipcol', sql.Int, tipcol)
-                        .input('numemp', sql.Int, numemp)
-                        .input('datapu', sql.DateTime, hour.datapu)
-                        .input('qtdhor', sql.Int, hour.qtdhor)
-                        .input('codrat', sql.Int, codrat)
-                        .input('motsit', sql.Int, motsit)
-                        .input('codusu', sql.Int, codusu)
-                        .input('codsit', sql.Int, hour.codsit) 
-                        .query(`
-                            BEGIN TRY
-                                INSERT INTO Test.Senior.R066SIT (numcad, tipcol, numemp, datapu, qtdhor, codrat, motsit, codusu, codsit)
-                                VALUES (@numcad, @tipcol, @numemp, @datapu, @qtdhor, @codrat, @motsit, @codusu, @codsit)
-                            END TRY
-                            BEGIN CATCH
-                                SELECT ERROR_MESSAGE() AS ErrorMessage;
-                                PRINT 'Erro de inserção ignorado: ' + ERROR_MESSAGE();
-                            END CATCH
-                        `);
-                } catch (error) {
-                    console.error('Erro ao tentar inserir dados:', error);
-                }
-            }
-            
-            await sendEmail(motivo, selectedHours, numcad, nomfun, titred, nomloc);
+
+            if (!status === 'aprovado') await this.postSendEmail(motivo, selectedHours, numcad, nomfun, titred, nomloc);
             return res.status(200).json({ message: 'Horas extras reprovadas e e-mail enviado!' });
         }
 
@@ -202,7 +173,7 @@ exports.postSendEmail = async (req, res) => {
             if (hour.DATA_EXTRA && hour.HORA_EXTRA) {
                 return `${hour.DATA_EXTRA} - ${hour.HORA_EXTRA}`;
             }
-            console.log(hour.DATA_EXTRA + hour.HORA_EXTRA);
+            console.log('teste', hour.DATA_EXTRA, hour.HORA_EXTRA);
             return 'Informação inválida de hora extra';
         }).join("\n");
 
