@@ -119,6 +119,7 @@ const getHours = async (numcadList) => {
                     COL.NUMCAD in (${numcalist2})
                     AND SIT.CODSIT IN (301,302,303,304,305,306,307,308,309,310)
                     AND SIT.DATAPU >= '2025-01-01 00:00:00.000'
+                    ORDER BY SIT.DATAPU DESC
                 `
             )
 
