@@ -151,6 +151,9 @@ exports.postSendEmail = async (req, res) => {
     const { data } = req.body;
     const { nomfun, titred, numcad, tipcol, numemp, motivo, selectedHours, nomloc } = data;
 
+    console.log(selectedHours);
+
+
     if (!nomfun || !titred || !numcad || !tipcol || !numemp || !motivo || !nomloc) {
         return res.status(400).json({ message: 'Informações incompletas.' });
     }
@@ -169,13 +172,18 @@ exports.postSendEmail = async (req, res) => {
             }
         });
 
-        const formattedHours = selectedHours.map(hour => {
-            if (hour.DATA_EXTRA && hour.HORA_EXTRA) {
-                return `${hour.DATA_EXTRA} - ${hour.HORA_EXTRA}`;
-            }
-            console.log('teste', hour.DATA_EXTRA, hour.HORA_EXTRA);
-            return 'Informação inválida de hora extra';
-        }).join("\n");
+        const formattedHours = selectedHours
+            .map(hour => {
+
+                if (typeof hour === 'string') {
+                    return hour.replace(/\s?h$/, '').trim();
+                } else if (typeof hour === 'object' && hour.DATA_EXTRA && hour.HORA_EXTRA) {
+                    const hora = hour.HORA_EXTRA.replace(/\s?h$/, '').trim();
+                    return `${hour.DATA_EXTRA} - ${hora}`;
+                }
+                return 'Informação inválida de hora extra';
+            })
+            .join("\n");
 
         const mailOptions = {
             from: process.env.STMP_FROM,
@@ -183,7 +191,7 @@ exports.postSendEmail = async (req, res) => {
             subject: 'Reprovação de Horas Extras',
             text: `As horas extras do colaborador ${numcad}: ${nomfun} foram reprovadas.\n
                    Motivo: ${motivo}\n
-                   Horas reprovadas:\n${formattedHours}\n
+                   Horas reprovadas: ${formattedHours}\n
                    Cargos: ${titred}`
         };
 
