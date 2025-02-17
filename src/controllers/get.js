@@ -12,7 +12,7 @@ exports.getLogin = async (req, res) => {
         const pool = await connectDB();
         const result = await pool.request()
             .input('numcad', userId)
-            .query('select fun.numcad, fun.nomfun, car.titred, car.usu_tbcarges FROM Test.Senior.r034fun fun inner join Test.Senior.r024car car on car.codcar = fun.codcar where numcad = @numcad');
+            .query('select fun.numcad, fun.nomfun, car.titred, car.usu_tbcarges FROM r034fun fun inner join r024car car on car.codcar = fun.codcar where numcad = @numcad');
 
         if (!result.recordset.length) {
             return res.status(404).json({ message: 'Matrícula não encontrada.' });
@@ -54,13 +54,13 @@ exports.getColaboradorGestor = async (req, res) => {
                     ORN.NUMLOC,
                     ORN.NOMLOC
                 FROM
-                    TEST.SENIOR.R034FUN GES
-                JOIN TEST.SENIOR.R034FUN COL 
+                    R034FUN GES
+                JOIN R034FUN COL 
                     ON GES.NUMLOC = COL.NUMLOC
                     AND COL.SITAFA = 1
-                JOIN TEST.SENIOR.R024CAR CAR
+                JOIN R024CAR CAR
                     ON CAR.CODCAR = COL.CODCAR
-                JOIN TEST.SENIOR.R016ORN ORN 
+                JOIN R016ORN ORN 
                     ON ORN.NUMLOC = COL.NUMLOC
                 WHERE
                     GES.NUMCAD = @numcad
@@ -110,10 +110,10 @@ const getHours = async (numcadList) => {
                     SIT.DATAPU AS DATA_EXTRA,
                     FORMAT(FLOOR(SIT.QTDHOR / 60), '00') + ':' + FORMAT(SIT.QTDHOR % 60, '00') AS HORA_EXTRA 
                 FROM  
-                    TEST.SENIOR.R066SIT SIT 
-                    JOIN TEST.SENIOR.R034FUN COL 
+                    R066SIT SIT 
+                    JOIN R034FUN COL 
                         ON SIT.NUMCAD = COL.NUMCAD
-                    JOIN TEST.SENIOR.r024car CR 
+                    JOIN r024car CR 
                         ON CR.CODCAR = COL.CODCAR
                 WHERE
                     COL.NUMCAD in (${numcalist2})
@@ -149,7 +149,7 @@ const getJornadas = async (numcadList) => {
                     STRING_AGG(FORMAT(FLOOR(AC.HORACC / 60), '00') + ':' + FORMAT(AC.HORACC % 60, '00'), ', ') AS HORAS_FORMATADAS,
                     AC.QTDACC,
                     AC.NUMCRA 
-                FROM TEST.SENIOR.R070ACC AC
+                FROM R070ACC AC
                 WHERE AC.DATACC >= '2025-01-01 00:00:00.000' 
                 AND AC.NUMCAD IN (${numcalist2})  
                 GROUP BY AC.NUMCAD, AC.DATACC, AC.QTDACC, AC.NUMCRA

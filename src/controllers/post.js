@@ -20,7 +20,7 @@ exports.postLogin = async (req, res) => {
 
         const result = await pool.request()
             .input('matricula', matricula)
-            .query(`SELECT * FROM TEST.SENIOR.R034FUN FU JOIN TEST.SENIOR.R024CAR RC ON RC.CODCAR = FU.CODCAR WHERE FU.NUMCAD = @MATRICULA`);
+            .query(`SELECT * FROM R034FUN FU JOIN R024CAR RC ON RC.CODCAR = FU.CODCAR WHERE FU.NUMCAD = @MATRICULA`);
 
         const user = result.recordset[0];
 
@@ -123,7 +123,7 @@ exports.postHours = async (req, res) => {
                     .input('codsit', sql.Int, hour.codsit)
                     .query(`
                             BEGIN TRY
-                                INSERT INTO Test.Senior.R066SIT (numcad, tipcol, numemp, datapu, qtdhor, codrat, motsit, codusu, codsit)
+                                INSERT INTO R066SIT (numcad, tipcol, numemp, datapu, qtdhor, codrat, motsit, codusu, codsit)
                                 VALUES (@numcad, @tipcol, @numemp, @datapu, @qtdhor, @codrat, @motsit, @codusu, @codsit)
                             END TRY
                             BEGIN CATCH
