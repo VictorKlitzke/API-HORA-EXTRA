@@ -1,6 +1,6 @@
-const connectDB = require('../services/index');
+const { connectDB, connectDBSiagri } = require('../services/index');
+const { validateArray } = require('../utils');
 const sql = require('mssql');
-const convertTimeToMinutes = require('../utils/index');
 
 const jwt = require("jsonwebtoken");
 const moment = require('moment');
@@ -10,13 +10,14 @@ require('dotenv').config();
 
 exports.postLogin = async (req, res) => {
     const { matricula } = req.body;
-    const pool = await connectDB();
 
     if (!matricula) {
         return res.status(400).json({ message: 'Matricula não informada.' });
     }
 
     try {
+
+        const pool = connectDB;
 
         const result = await pool.request()
             .input('matricula', matricula)
@@ -70,14 +71,14 @@ exports.postHours = async (req, res) => {
     const motsit = 0;
     const codusu = 0;
 
-    console.log('Recebendo dados:', data);
+    validateArray(selectedHours);
 
-    if (!numcad || !tipcol || !numemp || !Array.isArray(selectedHours) || selectedHours.length === 0) {
+    if (!numcad || !tipcol || !numemp || selectedHours.length === 0) {
         return res.status(400).json({ message: 'Informações insuficientes para processamento.' });
     }
 
     try {
-        const pool = await connectDB();
+        const pool = connectDB;
 
         const convertTimeToMinutes = (timeString) => {
             if (!timeString || typeof timeString !== 'string' || !timeString.includes(':')) {
@@ -204,5 +205,24 @@ exports.postSendEmail = async (req, res) => {
         }
     } else {
         return res.status(400).json({ message: 'Local não permitido para envio de e-mail.' });
+    }
+};
+
+exports.postDBO = async (req, res) => {
+
+    const { data } = req.body;
+    const { Safra, CicloProducao, Talhao, NumeroServico, Maquina, Operador, Inicio, Final, HorimetroInicial, HorimetroFinal, AreaTalhao, Servico, Fazenda } = data;
+
+    if (!Safra || !Talhao || !NumeroServico || !AreaTalhao || !HorimetroInicial || !HorimetroFinal || !CicloProducao) {
+        return res.status(400).json({ message: 'Informações insuficientes.' });
+    }
+
+    try {
+
+        const pool = connectDBSiagri;
+
+    } catch (error) {
+        console.error('Erro ao tentar conectar ao banco de dados:', error);
+        return res.status(500).json({ message: 'Erro no servidor ao conectar ao banco de dados.' });
     }
 };

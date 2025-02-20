@@ -4,8 +4,6 @@ const connectDB = require('../services/index');
 module.exports = async (req, res, next) => {
     let token = req.cookies['token'];
 
-    const pool = await connectDB();
-
     if (!token && req.headers['authorization']) {
         const authHeader = req.headers['authorization'];
         token = authHeader.split(' ')[1];
@@ -16,6 +14,7 @@ module.exports = async (req, res, next) => {
     }
 
     try {
+        const pool = connectDB;
         const decoded = jwt.verify(token, process.env.TOKEN);
         const userId = decoded.id;
 

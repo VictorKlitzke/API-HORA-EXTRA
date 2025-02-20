@@ -4,14 +4,29 @@ const getAuth = require('../controllers/get');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
-// POST
-router.post('/postLogin', postAuth.postLogin);
-router.post('/postLogout', auth, postAuth.postLogout);
-router.post('/postHours', auth, postAuth.postHours);
-router.post('/postSendEmail', auth, postAuth.postSendEmail);
 
-// GET
-router.get('/getLogin', auth, getAuth.getLogin);
-router.get('/getColaboradorGestor', auth, getAuth.getColaboradorGestor);
+const routes = {
+    post: {
+        '/postLogin': postAuth.postLogin,
+        '/postLogout': postAuth.postLogout,
+        '/postHours': postAuth.postHours,
+        '/postSendEmail': postAuth.postSendEmail
+    },
+    get: {
+        '/getLogin': getAuth.getLogin,
+        '/getColaboradorGestor': getAuth.getColaboradorGestor
+    },
+    siagri: {
+        '/getSafra': getAuth.getSafra,
+        '/getTalhao': getAuth.getTalhao
+    }
+};
+
+router.use(auth);
+router.post('/postLogin', routes.post['/postLogin']);
+
+Object.entries({ ...routes.post, ...routes.get, ...routes.siagri }).forEach(([path, handler]) => {
+    router[path.startsWith('/post') ? 'post' : 'get'](path, handler);
+});
 
 module.exports = router;
