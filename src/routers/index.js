@@ -4,10 +4,14 @@ const getAuth = require('../controllers/get');
 const auth = require('../middleware/auth');
 const router = express.Router();
 
+router.get('/getSafra', getAuth.getSafra);
+router.get('/getTalhao', getAuth.getTalhao);
+router.get('/getFazenda', getAuth.getFazenda);
+router.get('/getOperador', getAuth.getOperador);
+router.get('/getCiclo', getAuth.getCiclo);
 
 const routes = {
     post: {
-        '/postLogin': postAuth.postLogin,
         '/postLogout': postAuth.postLogout,
         '/postHours': postAuth.postHours,
         '/postSendEmail': postAuth.postSendEmail
@@ -16,16 +20,12 @@ const routes = {
         '/getLogin': getAuth.getLogin,
         '/getColaboradorGestor': getAuth.getColaboradorGestor
     },
-    siagri: {
-        '/getSafra': getAuth.getSafra,
-        '/getTalhao': getAuth.getTalhao
-    }
 };
 
+router.post('/postLogin', postAuth.postLogin);
 router.use(auth);
-router.post('/postLogin', routes.post['/postLogin']);
 
-Object.entries({ ...routes.post, ...routes.get, ...routes.siagri }).forEach(([path, handler]) => {
+Object.entries({ ...routes.post, ...routes.get }).forEach(([path, handler]) => {
     router[path.startsWith('/post') ? 'post' : 'get'](path, handler);
 });
 

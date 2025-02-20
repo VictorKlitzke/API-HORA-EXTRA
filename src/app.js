@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
 const CorsOptions = {
-    origin: 'http://192.168.103.251:3000/api',
+    origin: '*',
     credentials: true,
     optionsSuccessStatus: 200,
 }

@@ -1,4 +1,5 @@
-const { connectDB, connectDBSiagri } = require('../services/index');
+const { connectDB } = require('../services/index');
+const connectDBSiagri = require('../services/index');
 const { validateArray } = require('../utils');
 const sql = require('mssql');
 
@@ -17,7 +18,7 @@ exports.postLogin = async (req, res) => {
 
     try {
 
-        const pool = connectDB;
+        const pool = await connectDB();
 
         const result = await pool.request()
             .input('matricula', matricula)
@@ -78,7 +79,7 @@ exports.postHours = async (req, res) => {
     }
 
     try {
-        const pool = connectDB;
+        const pool = await connectDB();
 
         const convertTimeToMinutes = (timeString) => {
             if (!timeString || typeof timeString !== 'string' || !timeString.includes(':')) {
@@ -219,7 +220,7 @@ exports.postDBO = async (req, res) => {
 
     try {
 
-        const pool = connectDBSiagri;
+        const pool = connectDBSiagri();
 
     } catch (error) {
         console.error('Erro ao tentar conectar ao banco de dados:', error);

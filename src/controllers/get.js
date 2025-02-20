@@ -1,9 +1,6 @@
-const { connectDB, connectDBSiagri} = require('../services/index');
+const { connectDBSiagri, connectDB } = require('../services/index');
 const sql = require('mssql');
 require('dotenv').config();
-
-const pool = connectDB;
-const poolSiagri = connectDBSiagri;
 
 exports.getLogin = async (req, res) => {
     const userId = req.user.numcad;
@@ -12,6 +9,7 @@ exports.getLogin = async (req, res) => {
         return res.status(401).json({ message: 'Acesso não autorizado.' });
     }
     try {
+        const pool = await connectDB();
         const result = await pool.request()
             .input('numcad', userId)
             .query('select fun.numcad, fun.nomfun, car.titred, car.usu_tbcarges FROM r034fun fun inner join r024car car on car.codcar = fun.codcar where numcad = @numcad');
@@ -39,6 +37,7 @@ exports.getColaboradorGestor = async (req, res) => {
     }
 
     try {
+        const pool = await connectDB();
         const { recordset: ListHora } = await pool.request()
             .input('numcad', sql.Int, userId)
             .input('numloc', sql.Int, numloc)
@@ -96,11 +95,11 @@ exports.getColaboradorGestor = async (req, res) => {
     }
 };
 
-
 const getHours = async (numcadList) => {
     try {
         
         const numcalist2 = numcadList.join(' ,');
+        const pool = await connectDB();
         const result = await pool.request()
             .query(
                 `
@@ -137,6 +136,7 @@ const getHours = async (numcadList) => {
 const getJornadas = async (numcadList) => {
     try {
         const numcalist2 = numcadList.join(' ,');
+        const pool = await connectDB();
         const result = await pool.request()
             .query(`
                 SELECT DISTINCT 
@@ -165,17 +165,19 @@ const getJornadas = async (numcadList) => {
 
 exports.getTalhao = async (req, res) => {
     try {
-
-        const { recordset: result } = poolSiagri.request()
+        const poolSiagri = await connectDBSiagri();
+        const  result  = poolSiagri.request()
             .query('select * from Talhoes')
 
-        if (!result.length) {
+        if (!result.recordset.length) {
             return res.status(404).json({ message: 'Nenhum talhão encontrado.' });
         }
 
+        const talhao = result.recordset[0];
+
         return res.status(200).json({
             authorization: true,
-            getTalhao: result
+            getTalhao: talhao
         });
 
     } catch (error) {
@@ -184,22 +186,82 @@ exports.getTalhao = async (req, res) => {
     }
 }
 
-exports.getSafra = async (req, res) => {
+exports.getFazenda = async (req, res) => {
+    const data = "MAURO";
     try {
-        const { recordset: result } = poolSiagri.request()
-            .query('select * from Safras')
+        const poolSiagri = await connectDBSiagri();
+        const result  = poolSiagri.request()
+            .query('select * from DetPessoas dp where dp.Codigo = 1 and dp.Descricao like '%data%'')
 
-        if (!result.length) {
+        if (!result.recordset.length) {
             return res.status(404).json({ message: 'Nenhuma safra encontrada.' });
         }
 
+        const fazenda = result.recordset[0];
+
         return res.status(200).json({
             authorization: true,
-            getSafra: result
+            getFazenda: fazenda
         });
 
     } catch (error) {
         console.error('Erro ao buscar talhão:', error);
         res.status(500).json({ message: 'Erro interno no servidor.' });
     }
-}
+};
+
+exports.getOperador = async (req, res) => {
+    try {
+        const poolSiagri = await connectDBSiagri();
+        const result = await poolSiagri.request()
+            .query("SELECT p.Nome, p.Codigo FROM Agrimanager.dbo.Pessoas p WHERE p.Tipo = 'F2O1' AND p.Desativar <> 'S'");
+
+        if (!result.recordset.length) {
+            return res.status(404).json({ message: 'Nenhuma pessoa encontrada.' });
+        }
+
+        const operador = result.recordset[0];
+
+        return res.status(200).json({
+            getOperador: operador
+        });
+
+    } catch (error) {
+        console.error('Erro ao buscar operador:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
+};
+
+exports.getSafra = async (req, res) => {
+    try {
+        const poolSiagri = await connectDBSiagri();
+        const result = await poolSiagri.request().query('SELECT Codigo, Descricao, Mascara FROM agrimanager.dbo.Safras');
+
+        if (!result.recordset || result.recordset.length === 0) {
+            return res.status(404).json({ message: 'Nenhuma safra encontrada.' });
+        }
+
+        return res.status(200).json({ getSafra: result.recordset });
+
+    } catch (error) {
+        console.error('Erro ao buscar safra:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
+};
+
+exports.getCiclo = async (req, res) => {
+    try {
+        const poolSiagri = await connectDBSiagri();
+        const result = await poolSiagri.request().query('SELECT Codigo, Descricao, Safra, Cultura FROM agrimanager.dbo.CicloProd');
+
+        if (!result.recordset || result.recordset.length === 0) {
+            return res.status(404).json({ message: 'Nenhuma safra encontrada.' });
+        }
+
+        return res.status(200).json({ getCiclo: result.recordset });
+
+    } catch (error) {
+        console.error('Erro ao buscar safra:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
+};

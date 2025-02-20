@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const connectDB = require('../services/index');
+const { connectDB } = require('../services/index');
 
 module.exports = async (req, res, next) => {
     let token = req.cookies['token'];
@@ -14,7 +14,7 @@ module.exports = async (req, res, next) => {
     }
 
     try {
-        const pool = connectDB;
+        const pool = await connectDB();
         const decoded = jwt.verify(token, process.env.TOKEN);
         const userId = decoded.id;
 
