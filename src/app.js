@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const authRouter = require('./routers/index');
+const routerSenior = require('./routers/routerSenior');
+const routerAgrimanager = require('./routers/routerAgrimanager');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
@@ -14,6 +15,7 @@ const app = express();
 app.use(cors(CorsOptions));
 app.use(cookieParser())
 app.use(bodyParser.json());
-app.use('/api', authRouter);
+app.use('/agrimanager', routerAgrimanager);
+app.use('/senior', routerSenior);
 
 module.exports = app;
