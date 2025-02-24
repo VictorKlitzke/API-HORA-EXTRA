@@ -5,7 +5,7 @@ require('dotenv').config();
 exports.getTalhao = async (req, res) => {
     try {
         const poolSiagri = await connectDBSiagri();
-        const result  = await poolSiagri.request().query("select Codigo, Identificacao, Safra from Talhoes")
+        const result  = await poolSiagri.request().query("select Codigo, Identificacao, Safra, Fazenda from Talhoes")
 
         console.log(result.recordset);
 
@@ -24,7 +24,7 @@ exports.getFazenda = async (req, res) => {
     try {
         const poolSiagri = await connectDBSiagri();
         const result = poolSiagri.request()
-            .query("select * from DetPessoas dp where dp.Codigo = 1 and dp.Descricao like '%MAURO%'")
+            .query("select dp.Codigo, dp.Descricao, dp.Sequencial from DetPessoas dp where dp.Codigo = 1 and dp.Descricao like '%MAURO%'")
 
         if (!result.recordset.length) {
             return res.status(404).json({ message: 'Nenhuma fazenda encontrada.' });

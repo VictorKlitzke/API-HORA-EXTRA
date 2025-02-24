@@ -15,7 +15,7 @@ const app = express();
 app.use(cors(CorsOptions));
 app.use(cookieParser())
 app.use(bodyParser.json());
-app.use('/agrimanager', routerAgrimanager);
 app.use('/senior', routerSenior);
+app.use('/agrimanager', routerAgrimanager);
 
 module.exports = app;
