@@ -12,7 +12,7 @@ exports.getLogin = async (req, res) => {
         const pool = await connectDB();
         const result = await pool.request()
             .input('numcad', userId)
-            .query('select fun.numcad, fun.nomfun, car.titred, car.usu_tbcarges FROM r034fun fun inner join r024car car on car.codcar = fun.codcar where numcad = @numcad');
+            .query('select fun.numemp, fun,tipcol, fun.numcad, fun.nomfun, car.titred, car.usu_tbcarges FROM r034fun fun inner join r024car car on car.codcar = fun.codcar where numcad = @numcad');
 
         if (!result.recordset.length) {
             return res.status(404).json({ message: 'Matrícula não encontrada.' });

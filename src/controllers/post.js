@@ -67,11 +67,17 @@ exports.postLogout = async (req, res) => {
 
 exports.postHours = async (req, res) => {
     const { data } = req.body;
-    const { numcad, tipcol, numemp, motivo, selectedHours, status } = data;
+    const { numcad, tipcol, numemp, motivo, selectedHours, status, numFunAut, numempAut, tipcolAut } = data;
     const codrat = 0;
     const motsit = 0;
     const codusu = 0;
-
+    const horini = 0;
+    const horfim = 0;
+    const tolaea = 0;     
+    const tolasa = 0;     
+    const tolaep = 0;    
+    const tolasp = 0;
+    const staacc = 0
     validateArray(selectedHours);
 
     if (!numcad || !tipcol || !numemp || selectedHours.length === 0) {
@@ -114,27 +120,77 @@ exports.postHours = async (req, res) => {
         for (let hour of formattedHours) {
             try {
                 await pool.request()
-                    .input('numcad', sql.Int, numcad)
-                    .input('tipcol', sql.Int, tipcol)
                     .input('numemp', sql.Int, numemp)
-                    .input('datapu', sql.DateTime, hour.datapu)
-                    .input('qtdhor', sql.Int, hour.qtdhor)
-                    .input('codrat', sql.Int, codrat)
-                    .input('motsit', sql.Int, motsit)
-                    .input('codusu', sql.Int, codusu)
-                    .input('codsit', sql.Int, hour.codsit)
+                    .input('tipcol', sql.Int, tipcol)
+                    .input('numcad', sql.Int, numcad)
+                    .input('datini', sql.DateTime, hour.datapu)
+                    .input('horini', sql.Int, horini)
+                    .input('horfim', sql.Int, horfim)
+                    .input('datfim', sql.DateTime, hour.datapu)
+                    .input('empaut', sql.Int, numempAut)
+                    .input('tclaut', sql.Int, tipcolAut)
+                    .input('cadaut', sql.Int, numFunAut)
+                    .input('codusu', sql.Int, numcad)
+                    .input('staacc', sql.Int, staacc)
+                    .input('tolaea', sql.Int, tolaea)
+                    .input('tolaep', sql.Int, tolaep)
+                    .input('tolasp', sql.Int, tolasp)
+  
                     .query(`
-                            BEGIN TRY
-                                INSERT INTO R066SIT (numcad, tipcol, numemp, datapu, qtdhor, codrat, motsit, codusu, codsit)
-                                VALUES (@numcad, @tipcol, @numemp, @datapu, @qtdhor, @codrat, @motsit, @codusu, @codsit)
-                            END TRY
-                            BEGIN CATCH
-                                SELECT ERROR_MESSAGE() AS ErrorMessage;
-                                PRINT 'Erro de inserção ignorado: ' + ERROR_MESSAGE();
-                            END CATCH
+                        INSERT INTO R064EXT (
+                            numemp,      
+                            tipcol,      
+                            numcad,      
+                            datini,    
+                            horini,     
+                            horfim,     
+                            datfim,      
+                            empaut,    
+                            tclaut,     
+                            cadaut,    
+                            codusu,    
+                            staacc,    
+                            tolaea,     
+                            tolasa,     
+                            tolaep,    
+                            tolasp   
+                        )
+                        VALUES (
+                            @numemp,
+                            @tipcol,    
+                            @numcad,     
+                            @datini,     
+                            @horini,    
+                            @horfim,   
+                            @datfim,    
+                            @empaut,    
+                            @tclaut,     
+                            @cadaut,     
+                            @codusu,     
+                            @staacc,     
+                            @tolaea,     
+                            @tolasa,     
+                            @tolaep,    
+                            @tolasp,   
+                        );
                         `);
             } catch (error) {
                 console.error('Erro ao tentar inserir dados:', error);
+            }
+
+            try {
+                await pool.request()
+                    .input('numcad', sql.Int, numcad)
+                    .input('tipcol', sql.Int, tipcol)
+                    .input('numemp', sql.Int, numemp)
+                    .query(`
+                        UPDATE R066SIT
+                        SET codsit = 16
+                        WHERE numcad = @numcad AND tipcol = @tipcol AND numemp = @numemp;
+                        `);
+
+            } catch (error) {
+                console.error('Erro ao tentar atualizar dados:', error);
             }
 
             if (!status === 'aprovado') await this.postSendEmail(motivo, selectedHours, numcad, nomfun, titred, nomloc);

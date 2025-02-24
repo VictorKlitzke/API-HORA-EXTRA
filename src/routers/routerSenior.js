@@ -10,7 +10,7 @@ routerSenior.post('/postHours', auth, postAuth.postHours);
 routerSenior.post('/postSendEmail', auth, postAuth.postSendEmail);
 
 
-routerSenior.get('/postSendEmail', auth, getAuth.getColaboradorGestor);
+routerSenior.get('/getColaboradorGestor', auth, getAuth.getColaboradorGestor);
 routerSenior.get('/getLogin', auth, getAuth.getLogin);
 
 

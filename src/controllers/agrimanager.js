@@ -7,8 +7,6 @@ exports.getTalhao = async (req, res) => {
         const poolSiagri = await connectDBSiagri();
         const result  = await poolSiagri.request().query("select Codigo, Identificacao, Safra, Fazenda from Talhoes")
 
-        console.log(result.recordset);
-
         if (!result.recordset || result.recordset.length === 0) {
             return res.status(404).json({ message: 'Nenhum talhão encontrado.' });
         }
