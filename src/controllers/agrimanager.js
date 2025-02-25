@@ -77,7 +77,7 @@ exports.getCiclo = async (req, res) => {
         const result = await poolSiagri.request().query('SELECT Codigo, Descricao, Safra, Cultura FROM CicloProd');
 
         if (!result.recordset || result.recordset.length === 0) {
-            return res.status(404).json({ message: 'Nenhuma safra encontrada.' });
+            return res.status(404).json({ message: 'Nenhuma ciclo encontrada.' });
         }
 
         return res.status(200).json({ getCiclo: result.recordset });
@@ -87,7 +87,22 @@ exports.getCiclo = async (req, res) => {
         res.status(500).json({ message: 'Erro interno no servidor.' });
     }
 };
+exports.getMaquina = async (req, res) => {
+    try {
+        const poolSiagri = await connectDBSiagri();
+        const result = await poolSiagri.request().query('select Bens.Codigo, Bens.Identificacao, Bens.Descricao from Bens');
 
+        if (!result.recordset || result.recordset.length === 0) {
+            return res.status(404).json({ message: 'Nenhuma maquina encontrada.' });
+        }
+
+        return res.status(200).json({ getCultura: result.recordset });
+
+    } catch (error) {
+        console.error('Erro ao buscar maquina:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
+};
 exports.getCultura = async (req, res) => {
     try {
         const poolSiagri = await connectDBSiagri();
