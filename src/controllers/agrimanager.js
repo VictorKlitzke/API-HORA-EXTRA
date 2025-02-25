@@ -96,7 +96,7 @@ exports.getMaquina = async (req, res) => {
             return res.status(404).json({ message: 'Nenhuma maquina encontrada.' });
         }
 
-        return res.status(200).json({ getCultura: result.recordset });
+        return res.status(200).json({ getMaquina: result.recordset });
 
     } catch (error) {
         console.error('Erro ao buscar maquina:', error);
